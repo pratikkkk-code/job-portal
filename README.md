@@ -152,5 +152,17 @@ pip install psycopg2-binary
 - Resume (PDF) upload & parsing
 - Email notifications on application status change
 - External job API integration (e.g., Adzuna, RemoteOK)
+
+---
+Screenshots 
+
+<img width="1792" height="997" alt="Screenshot 2026-06-17 at 1 05 57 PM" src="https://github.com/user-attachments/assets/b2491418-5170-4c52-90a8-7d4d50037b74" />
+<img width="1792" height="999" alt="Screenshot 2026-06-17 at 1 09 20 PM" src="https://github.com/user-attachments/assets/f853d62c-4d89-4a56-bc6e-9f34b00a0741" />
+<img width="1792" height="1000" alt="Screenshot 2026-06-17 at 1 08 57 PM" src="https://github.com/user-attachments/assets/0d2bc271-bbac-4572-a54a-f7202f659bfa" />
+<img width="1790" height="993" alt="Screenshot 2026-06-17 at 1 10 30 PM" src="https://github.com/user-attachments/assets/b350979e-c5cd-4518-86fb-85c5e2b3b11b" />
+<img width="1792" height="994" alt="Screenshot 2026-06-17 at 1 10 11 PM" src="https://github.com/user-attachments/assets/bea4386f-6d34-49f6-863f-19cdea694021" />
+<img width="1792" height="997" alt="Screenshot 2026-06-17 at 1 09 59 PM" src="https://github.com/user-attachments/assets/a77e60a0-f1ef-47a5-a929-31dd9962a51d" />
+
+
 - Advanced analytics dashboard for admins
 - Deployment configs for Render / Railway / Heroku
