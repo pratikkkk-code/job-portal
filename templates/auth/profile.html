@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}My Profile – JobConnect{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:680px;">
+  <h2 class="fw-800 mb-1" style="font-family:'Sora',sans-serif;">My Profile</h2>
+  <p class="text-muted mb-4">Keep your information up to date</p>
+
+  <form method="POST">
+    <div class="card p-4 mb-4">
+      <h5 class="fw-700 mb-3"><i class="bi bi-person-circle me-2 text-primary"></i>Personal Info</h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-600">Full Name</label>
+          <input type="text" name="full_name" class="form-control" value="{{ current_user.full_name or '' }}" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-600">Phone</label>
+          <input type="text" name="phone" class="form-control" value="{{ current_user.phone or '' }}" />
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-600">Location</label>
+          <input type="text" name="location" class="form-control" placeholder="City, State" value="{{ current_user.location or '' }}" />
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-600">Bio</label>
+          <textarea name="bio" class="form-control" rows="3" placeholder="Tell employers about yourself…">{{ current_user.bio or '' }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    {% if current_user.is_seeker %}
+    <div class="card p-4 mb-4">
+      <h5 class="fw-700 mb-3"><i class="bi bi-tools me-2 text-primary"></i>Professional Info</h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-600">Years of Experience</label>
+          <input type="number" name="experience_years" class="form-control" min="0" max="50" value="{{ current_user.experience_years or 0 }}" />
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-600">Skills <small class="text-muted">(comma-separated)</small></label>
+          <input type="text" name="skills" class="form-control" placeholder="Python, Flask, SQL, …" value="{{ current_user.skills or '' }}" />
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if current_user.is_employer %}
+    <div class="card p-4 mb-4">
+      <h5 class="fw-700 mb-3"><i class="bi bi-building me-2 text-primary"></i>Company Info</h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-600">Company Name</label>
+          <input type="text" name="company_name" class="form-control" value="{{ current_user.company_name or '' }}" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-600">Website</label>
+          <input type="url" name="website" class="form-control" placeholder="https://…" value="{{ current_user.website or '' }}" />
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-600">Company Description</label>
+          <textarea name="company_description" class="form-control" rows="3">{{ current_user.company_description or '' }}</textarea>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card p-4 mb-4">
+      <h5 class="fw-700 mb-3"><i class="bi bi-shield-lock me-2 text-primary"></i>Change Password <small class="text-muted fw-400">(leave blank to keep current)</small></h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-600">New Password</label>
+          <input type="password" name="new_password" class="form-control" placeholder="Min 6 chars" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-600">Confirm New Password</label>
+          <input type="password" name="confirm_password" class="form-control" />
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary px-4 fw-600"><i class="bi bi-check-circle me-1"></i>Save Changes</button>
+      <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary px-4">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

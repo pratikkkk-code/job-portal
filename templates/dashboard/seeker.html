@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}My Dashboard – JobConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Welcome header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h2 class="fw-800 mb-1" style="font-family:'Sora',sans-serif;">
+        Welcome back, {{ current_user.full_name.split()[0] if current_user.full_name else current_user.username }}! 👋
+      </h2>
+      <p class="text-muted mb-0">Here's an overview of your job search activity.</p>
+    </div>
+    <a href="{{ url_for('main.search') }}" class="btn btn-primary fw-600">
+      <i class="bi bi-search me-1"></i>Browse Jobs
+    </a>
+  </div>
+
+  <!-- Stats row -->
+  <div class="row g-3 mb-4">
+    {% set status_counts = {} %}
+    {% for app in applications %}
+      {% if app.status not in status_counts %}{% set _ = status_counts.update({app.status: 0}) %}{% endif %}
+    {% endfor %}
+
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center">
+        <div class="h2 fw-800 text-primary mb-0">{{ applications|length }}</div>
+        <div class="text-muted small">Total Applications</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center">
+        <div class="h2 fw-800 text-warning mb-0">{{ applications|selectattr('status','eq','Pending')|list|length }}</div>
+        <div class="text-muted small">Pending</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center">
+        <div class="h2 fw-800 text-success mb-0">{{ applications|selectattr('status','eq','Shortlisted')|list|length }}</div>
+        <div class="text-muted small">Shortlisted</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center">
+        <div class="h2 fw-800 text-info mb-0">{{ saved_jobs|length }}</div>
+        <div class="text-muted small">Saved Jobs</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Applications -->
+    <div class="col-lg-8">
+      <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-700 mb-0"><i class="bi bi-file-earmark-text me-2 text-primary"></i>My Applications</h5>
+          <a href="{{ url_for('jobs.my_applications') }}" class="btn btn-outline-primary btn-sm">View All</a>
+        </div>
+
+        {% if applications %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Job</th>
+                <th>Company</th>
+                <th>Applied</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for app in applications[:8] %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('main.job_detail', job_id=app.job_id) }}" class="fw-600 text-dark text-decoration-none">
+                    {{ app.job.title }}
+                  </a>
+                </td>
+                <td class="text-muted small">{{ app.job.employer.company_name or app.job.employer.full_name }}</td>
+                <td class="text-muted small">{{ app.applied_at.strftime('%d %b') }}</td>
+                <td>
+                  <span class="badge rounded-pill px-3 status-{{ app.status.lower() }}">{{ app.status }}</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-file-earmark" style="font-size:3rem;"></i>
+          <p class="mt-2">You haven't applied to any jobs yet.</p>
+          <a href="{{ url_for('main.search') }}" class="btn btn-primary">Find Jobs</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Saved Jobs -->
+    <div class="col-lg-4">
+      <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-700 mb-0"><i class="bi bi-bookmark me-2 text-primary"></i>Saved Jobs</h5>
+          <a href="{{ url_for('jobs.saved_jobs') }}" class="btn btn-outline-primary btn-sm">View All</a>
+        </div>
+
+        {% if saved_jobs %}
+          {% for sv in saved_jobs[:5] %}
+          <a href="{{ url_for('main.job_detail', job_id=sv.job_id) }}" class="text-decoration-none text-dark">
+            <div class="py-2 border-bottom">
+              <div class="fw-600 small">{{ sv.job.title }}</div>
+              <div class="text-muted" style="font-size:.78rem;">{{ sv.job.employer.company_name or sv.job.employer.full_name }}</div>
+              <div class="text-muted" style="font-size:.78rem;"><i class="bi bi-geo-alt me-1"></i>{{ sv.job.location }}</div>
+            </div>
+          </a>
+          {% endfor %}
+        {% else %}
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-bookmark" style="font-size:2rem;"></i>
+          <p class="mt-2 small">No saved jobs yet. Bookmark jobs to review later!</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Profile completeness -->
+      <div class="card p-4 mt-3">
+        <h6 class="fw-700 mb-3"><i class="bi bi-person-check me-2 text-primary"></i>Profile Completeness</h6>
+        {% set fields = [current_user.full_name, current_user.phone, current_user.location, current_user.bio, current_user.skills] %}
+        {% set filled = fields|select|list|length %}
+        {% set pct = (filled / fields|length * 100)|int %}
+        <div class="progress mb-2" style="height:8px;">
+          <div class="progress-bar bg-primary" style="width:{{ pct }}%;border-radius:4px;"></div>
+        </div>
+        <p class="small text-muted mb-2">{{ pct }}% complete</p>
+        {% if pct < 100 %}
+        <a href="{{ url_for('auth.profile') }}" class="btn btn-outline-primary btn-sm w-100">Complete Profile</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

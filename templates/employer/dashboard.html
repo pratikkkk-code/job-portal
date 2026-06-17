@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Employer Dashboard – JobConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h2 class="fw-800 mb-1" style="font-family:'Sora',sans-serif;">
+        {{ current_user.company_name or current_user.full_name }} Dashboard
+      </h2>
+      <p class="text-muted mb-0">Manage your job listings and applicants.</p>
+    </div>
+    <a href="{{ url_for('employer.post_job') }}" class="btn btn-primary fw-600">
+      <i class="bi bi-plus-circle me-1"></i>Post a New Job
+    </a>
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center">
+        <div class="h2 fw-800 text-primary mb-0">{{ jobs|length }}</div>
+        <div class="text-muted small">Total Jobs Posted</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center">
+        <div class="h2 fw-800 text-success mb-0">{{ active_jobs }}</div>
+        <div class="text-muted small">Active Listings</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center">
+        <div class="h2 fw-800 text-info mb-0">{{ total_apps }}</div>
+        <div class="text-muted small">Total Applicants</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center">
+        <div class="h2 fw-800 text-warning mb-0">{{ jobs|length - active_jobs }}</div>
+        <div class="text-muted small">Paused Listings</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Job Listings Table -->
+  <div class="card p-4">
+    <h5 class="fw-700 mb-3"><i class="bi bi-list-task me-2 text-primary"></i>Your Job Listings</h5>
+
+    {% if jobs %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Title</th>
+            <th>Location</th>
+            <th>Type</th>
+            <th>Posted</th>
+            <th>Applicants</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for job in jobs %}
+          <tr>
+            <td>
+              <a href="{{ url_for('main.job_detail', job_id=job.id) }}" class="fw-600 text-dark text-decoration-none">{{ job.title }}</a>
+            </td>
+            <td class="text-muted small">{{ job.location }}</td>
+            <td><span class="job-type-badge badge-{{ job.job_type.lower().replace('-','').replace(' ','') }}">{{ job.job_type }}</span></td>
+            <td class="text-muted small">{{ job.created_at.strftime('%d %b %Y') }}</td>
+            <td>
+              <a href="{{ url_for('employer.view_applicants', job_id=job.id) }}" class="text-decoration-none fw-600">
+                {{ job.application_count }} <i class="bi bi-arrow-right small"></i>
+              </a>
+            </td>
+            <td>
+              {% if job.is_active %}
+              <span class="badge rounded-pill status-shortlisted px-3">Active</span>
+              {% else %}
+              <span class="badge rounded-pill status-rejected px-3">Paused</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" href="{{ url_for('employer.edit_job', job_id=job.id) }}"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                  <li><a class="dropdown-item" href="{{ url_for('employer.view_applicants', job_id=job.id) }}"><i class="bi bi-people me-2"></i>View Applicants</a></li>
+                  <li>
+                    <form action="{{ url_for('employer.toggle_job', job_id=job.id) }}" method="POST">
+                      <button type="submit" class="dropdown-item">
+                        <i class="bi bi-{{ 'pause' if job.is_active else 'play' }} me-2"></i>{{ 'Pause' if job.is_active else 'Activate' }}
+                      </button>
+                    </form>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <form action="{{ url_for('employer.delete_job', job_id=job.id) }}" method="POST"
+                          onsubmit="return confirm('Delete this job listing? This cannot be undone.');">
+                      <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Delete</button>
+                    </form>
+                  </li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-briefcase" style="font-size:3rem;"></i>
+      <p class="mt-2">You haven't posted any jobs yet.</p>
+      <a href="{{ url_for('employer.post_job') }}" class="btn btn-primary">Post Your First Job</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

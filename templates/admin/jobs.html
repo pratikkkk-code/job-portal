@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Manage Jobs – JobConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none text-muted small mb-2 d-inline-block">
+    <i class="bi bi-arrow-left me-1"></i>Back to Admin Dashboard
+  </a>
+  <h2 class="fw-800 mb-1" style="font-family:'Sora',sans-serif;">Manage Jobs</h2>
+  <p class="text-muted mb-4">{{ pagination.total }} total job listings</p>
+
+  <!-- Filters -->
+  <div class="card p-3 mb-3">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-md-6">
+        <input type="text" name="q" class="form-control" placeholder="Search by job title…" value="{{ search }}">
+      </div>
+      <div class="col-md-3">
+        <select name="active" class="form-select">
+          <option value="">All Status</option>
+          <option value="1" {% if active == '1' %}selected{% endif %}>Active</option>
+          <option value="0" {% if active == '0' %}selected{% endif %}>Paused</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-primary w-100 fw-600">Filter</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card p-4">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Title</th>
+            <th>Employer</th>
+            <th>Location</th>
+            <th>Posted</th>
+            <th>Applicants</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for job in pagination.items %}
+          <tr>
+            <td>
+              <a href="{{ url_for('main.job_detail', job_id=job.id) }}" class="fw-600 text-dark text-decoration-none">{{ job.title }}</a>
+            </td>
+            <td class="text-muted small">{{ job.employer.company_name or job.employer.full_name }}</td>
+            <td class="text-muted small">{{ job.location }}</td>
+            <td class="text-muted small">{{ job.created_at.strftime('%d %b %Y') }}</td>
+            <td>{{ job.application_count }}</td>
+            <td>
+              {% if job.is_active %}
+              <span class="badge rounded-pill status-shortlisted px-3">Active</span>
+              {% else %}
+              <span class="badge rounded-pill status-rejected px-3">Paused</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <form action="{{ url_for('admin.delete_job', job_id=job.id) }}" method="POST"
+                    onsubmit="return confirm('Delete this job permanently?');">
+                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No jobs found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <nav class="mt-3">
+      <ul class="pagination justify-content-center">
+        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('admin.jobs', q=search, active=active, page=pagination.prev_num) }}"><i class="bi bi-chevron-left"></i></a>
+        </li>
+        {% for p in pagination.iter_pages() %}
+          {% if p %}
+          <li class="page-item {% if p == pagination.page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('admin.jobs', q=search, active=active, page=p) }}">{{ p }}</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+          {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('admin.jobs', q=search, active=active, page=pagination.next_num) }}"><i class="bi bi-chevron-right"></i></a>
+        </li>
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Edit Job – JobConnect{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:720px;">
+  <h2 class="fw-800 mb-1" style="font-family:'Sora',sans-serif;"><i class="bi bi-pencil-square text-primary me-2"></i>Edit Job</h2>
+  <p class="text-muted mb-4">Update the details for "{{ job.title }}"</p>
+
+  <form method="POST">
+    <div class="card p-4 mb-4">
+      <h5 class="fw-700 mb-3">Basic Information</h5>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label fw-600">Job Title *</label>
+          <input type="text" name="title" class="form-control" value="{{ job.title }}" required />
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-600">Job Description *</label>
+          <textarea name="description" class="form-control" rows="8" required>{{ job.description }}</textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-600">Location *</label>
+          <input type="text" name="location" class="form-control" value="{{ job.location }}" required />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-600">Category</label>
+          <select name="category_id" class="form-select">
+            <option value="">Select category</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if job.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-4 mb-4">
+      <h5 class="fw-700 mb-3">Job Type & Experience</h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-600">Employment Type</label>
+          <select name="job_type" class="form-select">
+            {% for jt in ['Full-Time','Part-Time','Contract','Internship','Freelance'] %}
+            <option {% if job.job_type == jt %}selected{% endif %}>{{ jt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-600">Experience Level</label>
+          <select name="experience_level" class="form-select">
+            {% for lvl in ['Entry-Level','Mid-Level','Senior','Lead','Director'] %}
+            <option {% if job.experience_level == lvl %}selected{% endif %}>{{ lvl }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="is_remote" id="isRemote" {% if job.is_remote %}checked{% endif %}>
+            <label class="form-check-label fw-600" for="isRemote">This is a remote position</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-4 mb-4">
+      <h5 class="fw-700 mb-3">Compensation & Skills</h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-600">Min Salary (₹/year)</label>
+          <input type="number" name="salary_min" class="form-control" value="{{ job.salary_min or '' }}" min="0" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-600">Max Salary (₹/year)</label>
+          <input type="number" name="salary_max" class="form-control" value="{{ job.salary_max or '' }}" min="0" />
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-600">Required Skills</label>
+          <input type="text" name="skills_required" class="form-control" value="{{ job.skills_required or '' }}" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-600">Application Deadline</label>
+          <input type="date" name="deadline" class="form-control" value="{{ job.deadline.strftime('%Y-%m-%d') if job.deadline else '' }}" />
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary fw-600 px-5"><i class="bi bi-check-circle me-1"></i>Save Changes</button>
+      <a href="{{ url_for('employer.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

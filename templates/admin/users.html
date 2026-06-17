@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Manage Users – JobConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none text-muted small mb-2 d-inline-block">
+    <i class="bi bi-arrow-left me-1"></i>Back to Admin Dashboard
+  </a>
+  <h2 class="fw-800 mb-1" style="font-family:'Sora',sans-serif;">Manage Users</h2>
+  <p class="text-muted mb-4">{{ pagination.total }} total users</p>
+
+  <!-- Filters -->
+  <div class="card p-3 mb-3">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <input type="text" name="q" class="form-control" placeholder="Search by name, username, email…" value="{{ search }}">
+      </div>
+      <div class="col-md-4">
+        <select name="role" class="form-select">
+          <option value="">All Roles</option>
+          <option value="seeker"   {% if role == 'seeker'   %}selected{% endif %}>Job Seekers</option>
+          <option value="employer" {% if role == 'employer' %}selected{% endif %}>Employers</option>
+          <option value="admin"    {% if role == 'admin'    %}selected{% endif %}>Admins</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-primary w-100 fw-600">Filter</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card p-4">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Joined</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in pagination.items %}
+          <tr>
+            <td class="fw-600">{{ u.full_name or u.username }}</td>
+            <td class="text-muted small">{{ u.email }}</td>
+            <td><span class="badge rounded-pill" style="background:#f1f5f9;color:#475569;">{{ u.role }}</span></td>
+            <td class="text-muted small">{{ u.created_at.strftime('%d %b %Y') }}</td>
+            <td>
+              {% if u.is_active %}
+              <span class="badge rounded-pill status-shortlisted px-3">Active</span>
+              {% else %}
+              <span class="badge rounded-pill status-rejected px-3">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <div class="d-flex gap-1 justify-content-end">
+                <form action="{{ url_for('admin.toggle_user', user_id=u.id) }}" method="POST">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary" title="Toggle active status"
+                          {% if u.id == current_user.id %}disabled{% endif %}>
+                    <i class="bi bi-{{ 'pause' if u.is_active else 'play' }}"></i>
+                  </button>
+                </form>
+                <form action="{{ url_for('admin.delete_user', user_id=u.id) }}" method="POST"
+                      onsubmit="return confirm('Delete this user permanently?');">
+                  <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"
+                          {% if u.id == current_user.id %}disabled{% endif %}>
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="text-center text-muted py-4">No users found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+    <nav class="mt-3">
+      <ul class="pagination justify-content-center">
+        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('admin.users', q=search, role=role, page=pagination.prev_num) }}"><i class="bi bi-chevron-left"></i></a>
+        </li>
+        {% for p in pagination.iter_pages() %}
+          {% if p %}
+          <li class="page-item {% if p == pagination.page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('admin.users', q=search, role=role, page=p) }}">{{ p }}</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+          {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('admin.users', q=search, role=role, page=pagination.next_num) }}"><i class="bi bi-chevron-right"></i></a>
+        </li>
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

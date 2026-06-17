@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} – JobConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row g-4">
+
+    <!-- ── Main Content ──────────────────────────────────────── -->
+    <div class="col-lg-8">
+      <!-- Job Header -->
+      <div class="card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+          <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+              <span class="job-type-badge badge-{{ job.job_type.lower().replace('-','').replace(' ','') }}">{{ job.job_type }}</span>
+              {% if job.is_remote %}<span class="job-type-badge badge-remote"><i class="bi bi-wifi me-1"></i>Remote</span>{% endif %}
+              {% if job.category %}<span class="badge rounded-pill" style="background:#f1f5f9;color:#475569;">{{ job.category.name }}</span>{% endif %}
+            </div>
+            <h1 class="h2 fw-800 mb-1">{{ job.title }}</h1>
+            <p class="text-muted mb-0">
+              <i class="bi bi-building me-1"></i>
+              <strong>{{ job.employer.company_name or job.employer.full_name }}</strong>
+              &nbsp;·&nbsp;<i class="bi bi-geo-alt me-1"></i>{{ job.location }}
+            </p>
+          </div>
+          <div class="text-end">
+            {% if job.salary_min %}
+            <div class="salary-text h5 fw-700 mb-0">{{ job.salary_display }}</div>
+            <div class="text-muted small">per year</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Meta row -->
+        <div class="row g-2 mt-3 pt-3 border-top">
+          <div class="col-auto">
+            <span class="text-muted small"><i class="bi bi-clock me-1"></i>Posted {{ job.created_at.strftime('%d %b %Y') }}</span>
+          </div>
+          <div class="col-auto">
+            <span class="text-muted small"><i class="bi bi-people me-1"></i>{{ job.application_count }} applicant{{ 's' if job.application_count != 1 }}</span>
+          </div>
+          <div class="col-auto">
+            <span class="text-muted small"><i class="bi bi-bar-chart me-1"></i>{{ job.experience_level }}</span>
+          </div>
+          {% if job.deadline %}
+          <div class="col-auto">
+            <span class="text-danger small"><i class="bi bi-calendar-x me-1"></i>Deadline: {{ job.deadline.strftime('%d %b %Y') }}</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Action buttons -->
+        <div class="d-flex gap-2 mt-3 flex-wrap">
+          {% if current_user.is_authenticated and current_user.is_seeker %}
+            {% if already_applied %}
+            <button class="btn btn-success fw-600" disabled>
+              <i class="bi bi-check-circle me-1"></i>Already Applied
+            </button>
+            {% else %}
+            <a href="{{ url_for('main.apply_job', job_id=job.id) }}" class="btn btn-primary fw-600 px-4">
+              <i class="bi bi-send me-1"></i>Apply Now
+            </a>
+            {% endif %}
+            <button class="btn btn-outline-secondary fw-600" id="saveBtn"
+                    onclick="toggleSave({{ job.id }})">
+              <i class="bi bi-bookmark{% if is_saved %}-fill text-primary{% endif %} me-1" id="saveIcon"></i>
+              <span id="saveText">{{ 'Saved' if is_saved else 'Save Job' }}</span>
+            </button>
+          {% elif not current_user.is_authenticated %}
+          <a href="{{ url_for('auth.login') }}" class="btn btn-primary fw-600 px-4">
+            <i class="bi bi-box-arrow-in-right me-1"></i>Log In to Apply
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Job Description -->
+      <div class="card p-4 mb-4">
+        <h4 class="fw-700 mb-3"><i class="bi bi-file-text me-2 text-primary"></i>Job Description</h4>
+        <div style="white-space:pre-line;line-height:1.8;">{{ job.description }}</div>
+      </div>
+
+      <!-- Skills Required -->
+      {% if job.skills_required %}
+      <div class="card p-4 mb-4">
+        <h4 class="fw-700 mb-3"><i class="bi bi-tools me-2 text-primary"></i>Skills Required</h4>
+        <div class="d-flex flex-wrap gap-2">
+          {% for skill in job.skills_required.split(',') %}
+          <span class="badge rounded-pill px-3 py-2" style="background:#dbeafe;color:#1e40af;font-weight:600;font-size:.85rem;">
+            {{ skill.strip() }}
+          </span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- ── Sidebar ───────────────────────────────────────────── -->
+    <div class="col-lg-4">
+
+      <!-- Company Card -->
+      <div class="card p-4 mb-4">
+        <h5 class="fw-700 mb-3"><i class="bi bi-building me-2 text-primary"></i>About the Company</h5>
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-700"
+               style="width:52px;height:52px;font-size:1.3rem;">
+            {{ (job.employer.company_name or job.employer.full_name)[0].upper() }}
+          </div>
+          <div>
+            <div class="fw-700">{{ job.employer.company_name or job.employer.full_name }}</div>
+            {% if job.employer.location %}
+            <div class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ job.employer.location }}</div>
+            {% endif %}
+          </div>
+        </div>
+        {% if job.employer.company_description %}
+        <p class="text-muted small mb-0">{{ job.employer.company_description }}</p>
+        {% endif %}
+        {% if job.employer.website %}
+        <a href="{{ job.employer.website }}" target="_blank" class="btn btn-outline-primary btn-sm mt-3 w-100">
+          <i class="bi bi-globe me-1"></i>Visit Website
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- Job Details Summary -->
+      <div class="card p-4 mb-4">
+        <h5 class="fw-700 mb-3"><i class="bi bi-info-circle me-2 text-primary"></i>Job Details</h5>
+        <ul class="list-unstyled mb-0">
+          <li class="d-flex justify-content-between py-2 border-bottom">
+            <span class="text-muted">Job Type</span>
+            <strong>{{ job.job_type }}</strong>
+          </li>
+          <li class="d-flex justify-content-between py-2 border-bottom">
+            <span class="text-muted">Experience</span>
+            <strong>{{ job.experience_level }}</strong>
+          </li>
+          <li class="d-flex justify-content-between py-2 border-bottom">
+            <span class="text-muted">Location</span>
+            <strong>{{ job.location }}</strong>
+          </li>
+          <li class="d-flex justify-content-between py-2 border-bottom">
+            <span class="text-muted">Remote</span>
+            <strong>{{ 'Yes' if job.is_remote else 'No' }}</strong>
+          </li>
+          {% if job.salary_min %}
+          <li class="d-flex justify-content-between py-2 border-bottom">
+            <span class="text-muted">Salary</span>
+            <strong class="salary-text">{{ job.salary_display }}</strong>
+          </li>
+          {% endif %}
+          {% if job.category %}
+          <li class="d-flex justify-content-between py-2">
+            <span class="text-muted">Category</span>
+            <strong>{{ job.category.name }}</strong>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <!-- Related Jobs -->
+      {% if related %}
+      <div class="card p-4">
+        <h5 class="fw-700 mb-3"><i class="bi bi-bookmark me-2 text-primary"></i>Similar Jobs</h5>
+        {% for rj in related %}
+        <a href="{{ url_for('main.job_detail', job_id=rj.id) }}" class="text-decoration-none text-dark">
+          <div class="py-2 border-bottom">
+            <div class="fw-600 small">{{ rj.title }}</div>
+            <div class="text-muted" style="font-size:.78rem;">{{ rj.employer.company_name or rj.employer.full_name }} · {{ rj.location }}</div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+async function toggleSave(jobId) {
+  const resp = await fetch(`/job/${jobId}/save`, { method: 'POST' });
+  const data = await resp.json();
+  const icon = document.getElementById('saveIcon');
+  const text = document.getElementById('saveText');
+  if (data.status === 'saved') {
+    icon.className = 'bi bi-bookmark-fill text-primary me-1';
+    text.textContent = 'Saved';
+  } else {
+    icon.className = 'bi bi-bookmark me-1';
+    text.textContent = 'Save Job';
+  }
+}
+</script>
+{% endblock %}
+{% endblock %}

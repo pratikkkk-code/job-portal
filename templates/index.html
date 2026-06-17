@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}JobConnect – Find Your Dream Job in India{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #0ea5e9 100%);
+  padding: 5rem 0 4rem;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero-content { position: relative; z-index: 1; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; line-height: 1.15; }
+.hero .search-box { background: white; border-radius: 14px; padding: 8px; box-shadow: 0 8px 32px rgba(0,0,0,.25); }
+.hero .search-box input { border: none; outline: none; font-size: 1rem; padding: 6px 4px; }
+.stat-pill { background: rgba(255,255,255,.15); backdrop-filter: blur(8px); border-radius: 30px; padding: 6px 18px; font-size: .88rem; display: inline-block; }
+.category-card { text-align: center; padding: 1.4rem 1rem; cursor: pointer; transition: all .2s; text-decoration: none; color: inherit; display: block; }
+.category-card:hover { background: #eff6ff; color: #2563eb; }
+.category-card .cat-icon { width: 52px; height: 52px; border-radius: 14px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 10px; transition: all .2s; }
+.category-card:hover .cat-icon { background: #2563eb; color: white; }
+.featured-section { padding: 3.5rem 0; }
+.cta-section { background: linear-gradient(135deg, #0f172a, #1e3a8a); color: white; padding: 4rem 0; border-radius: 20px; margin: 2rem 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero ─────────────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container hero-content">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <h1>Find the Job<br><span style="color:#93c5fd;">You Were Made For</span></h1>
+        <p class="lead mt-3 mb-4" style="color:rgba(255,255,255,.85);">
+          Connect with top employers across India. Post jobs, apply with ease, and grow your career.
+        </p>
+
+        <!-- Search bar -->
+        <form class="search-box d-flex gap-2 flex-wrap flex-md-nowrap" action="{{ url_for('main.search') }}" method="GET">
+          <input type="text" name="q" placeholder="Job title or skill..." class="flex-fill" style="min-width:120px;" />
+          <input type="text" name="location" placeholder="Location..." style="min-width:100px;" />
+          <button class="btn btn-primary px-4" type="submit"><i class="bi bi-search me-1"></i>Search</button>
+        </form>
+
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <span class="stat-pill"><i class="bi bi-briefcase me-1"></i>{{ total_jobs }}+ Active Jobs</span>
+          <span class="stat-pill"><i class="bi bi-building me-1"></i>{{ total_emp }}+ Employers</span>
+          <span class="stat-pill"><i class="bi bi-people me-1"></i>{{ total_seek }}+ Job Seekers</span>
+        </div>
+      </div>
+      <div class="col-lg-5 d-none d-lg-flex justify-content-center">
+        <div style="font-size:10rem;opacity:.18;line-height:1;">
+          <i class="bi bi-briefcase-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Browse by Category ─────────────────────────────────────────────────── -->
+<section class="featured-section bg-white">
+  <div class="container">
+    <h2 class="section-title text-center mb-1">Browse by Category</h2>
+    <p class="text-center text-muted mb-4">Explore opportunities across every industry</p>
+
+    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 g-3">
+      {% for cat in categories %}
+      <div class="col">
+        <a href="{{ url_for('main.search', category=cat.id) }}" class="card category-card">
+          <div class="cat-icon"><i class="bi {{ cat.icon }}"></i></div>
+          <div class="fw-600">{{ cat.name }}</div>
+          <small class="text-muted">{{ cat.jobs.filter_by(is_active=True).count() }} jobs</small>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── Featured Jobs ──────────────────────────────────────────────────────── -->
+<section class="featured-section">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="section-title mb-1">Latest Jobs</h2>
+        <p class="text-muted mb-0">Fresh opportunities posted this week</p>
+      </div>
+      <a href="{{ url_for('main.search') }}" class="btn btn-outline-primary">View All <i class="bi bi-arrow-right ms-1"></i></a>
+    </div>
+
+    <div class="row g-3">
+      {% for job in featured_jobs %}
+      <div class="col-md-6">
+        <a href="{{ url_for('main.job_detail', job_id=job.id) }}" class="text-decoration-none text-dark">
+          <div class="card job-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <h5 class="mb-1 fw-700">{{ job.title }}</h5>
+                <div class="text-muted small"><i class="bi bi-building me-1"></i>{{ job.employer.company_name or job.employer.full_name }}</div>
+              </div>
+              <span class="job-type-badge badge-{{ job.job_type.lower().replace('-','').replace(' ','') }}">{{ job.job_type }}</span>
+            </div>
+            <div class="d-flex flex-wrap gap-2 text-muted small mb-2">
+              <span><i class="bi bi-geo-alt me-1"></i>{{ job.location }}</span>
+              {% if job.is_remote %}<span class="job-type-badge badge-remote">Remote</span>{% endif %}
+              {% if job.salary_min %}<span class="salary-text"><i class="bi bi-cash me-1"></i>{{ job.salary_display }}</span>{% endif %}
+            </div>
+            <p class="small text-muted mb-2" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+              {{ job.description[:180] }}…
+            </p>
+            <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+              <span class="small text-muted">{{ job.created_at.strftime('%d %b %Y') }}</span>
+              <span class="small text-primary fw-600">Apply Now →</span>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% else %}
+      <div class="col-12 text-center text-muted py-5">
+        <i class="bi bi-briefcase" style="font-size:3rem;"></i>
+        <p class="mt-2">No jobs posted yet. Check back soon!</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ────────────────────────────────────────────────────────────────── -->
+{% if not current_user.is_authenticated %}
+<section class="container">
+  <div class="cta-section text-center">
+    <h2 class="display-font mb-2" style="font-family:'Sora',sans-serif;">Ready to take the next step?</h2>
+    <p class="mb-4" style="color:rgba(255,255,255,.7);">Join thousands of professionals building their careers on JobConnect.</p>
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+      <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg px-5 fw-600">Get Started Free</a>
+      <a href="{{ url_for('main.search') }}" class="btn btn-outline-light btn-lg px-5">Browse Jobs</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
